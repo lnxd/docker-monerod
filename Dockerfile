@@ -40,18 +40,18 @@ RUN apt-get update && apt-get install --no-install-recommends -y libnorm-dev lib
     && rm -rf /var/lib/apt/lists/*
 
 # Add user and setup directories for monerod
-RUN useradd -ms /bin/bash monero && mkdir -p /home/monero/.bitmonero \
-    && chown -R monero:monero /home/monero/.bitmonero
-USER monero
+RUN useradd --uid 99 --gid 98 -ms /bin/bash docker && mkdir -p /home/docker/.bitmonero \
+    && chown -R docker:docker /home/docker/.bitmonero
+USER docker
 
 # Switch to home directory and install newly built monerod binary
-WORKDIR /home/monero
-COPY --chown=monero:monero --from=build /monero/build/Linux/*/release/bin/monerod /usr/local/bin/monerod
+WORKDIR /home/docker
+COPY --chown=docker:docker --from=build /monero/build/Linux/*/release/bin/monerod /usr/local/bin/monerod
 
 # Expose p2p and restricted RPC ports
 EXPOSE 18080
-EXPOSE 18089
+EXPOSE 18081
 
 # Start monerod with required --non-interactive flag and sane defaults that are overridden by user input (if applicable)
 ENTRYPOINT ["monerod"]
-CMD ["--non-interactive", "--restricted-rpc", "--rpc-bind-ip=0.0.0.0", "--confirm-external-bind"]
+CMD ["--non-interactive", "--restricted-rpc", "--rpc-bind-ip=0.0.0.0", "--confirm-external-bind", "--enable-dns-blocklist", "--out-peers=16"]
